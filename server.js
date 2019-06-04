@@ -1,4 +1,5 @@
 const express = require('express');
+const uuidv4 = require('uuid/v4');
 const SocketServer = require('ws').Server;
 
 // Set the port to 3001
@@ -19,10 +20,19 @@ const wss = new SocketServer({ server });
 wss.on('connection', (ws) => {
   console.log('Client connected');
 
+//send message to all client
+wss.broadcast = function broadcast(data) {
+  wss.clients.forEach(function each(client) {
+    client.send(JSON.stringify(data));
+  });
+};
+
 ws.on('message',function(message){
     console.log("***MESSAGE");
     const newMessage =JSON.parse(message);
+    newMessage.id = uuidv4();
     console.log(newMessage.username, 'said', newMessage.content);
+    wss.broadcast(newMessage);
   }
 );
 
