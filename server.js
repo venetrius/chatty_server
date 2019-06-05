@@ -32,6 +32,7 @@ ws.on('message',function(message){
     const newMessage =JSON.parse(message);
     newMessage.id = uuidv4();
     console.log(newMessage.username, 'said', newMessage.content);
+    newMessage.type = newMessage.type === 'postNotification' ? 'incomingNotification' : 'incomingMessage';
     wss.broadcast(newMessage);
   }
 );
