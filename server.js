@@ -27,29 +27,39 @@ const sendUserCountNotification = function(){
   wss.broadcast(notification);
 }
 
-wss.on('connection', (ws) => {
-
-//send message to all client
-wss.broadcast = function broadcast(data) {
-  wss.clients.forEach(function each(client) {
-    client.send(JSON.stringify(data));
-  });
-};
-
-ws.on('message',function(message){
-    console.log("***MESSAGE");
-    const newMessage =JSON.parse(message);
-    newMessage.id = uuidv4();
-    console.log(newMessage.username, 'said', newMessage.content);
-    newMessage.type = newMessage.type === 'postNotification' ? 'incomingNotification' : 'incomingMessage';
-    wss.broadcast(newMessage);
+// https://stackoverflow.com/questions/1484506/random-color-generator
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
   }
-);
+  return color;
+}
+wss.on('connection', (ws) => {
+  const userColor = getRandomColor();
+  //send message to all client
+  wss.broadcast = function broadcast(data) {
+    wss.clients.forEach(function each(client) {
+      client.send(JSON.stringify(data));
+    });
+  };
 
-// Set up a callback for when a client closes the socket. This usually means they closed their browser.
-ws.on('close', () => {console.log('Client disconnected'); sendUserCountNotification();});
+  ws.on('message',function(message){
+      console.log("***MESSAGE");
+      const newMessage =JSON.parse(message);
+      newMessage.id = uuidv4();
+      newMessage.userColor = userColor;
+      console.log(newMessage.username, 'said', newMessage.content);
+      newMessage.type = newMessage.type === 'postNotification' ? 'incomingNotification' : 'incomingMessage';
+      wss.broadcast(newMessage);
+    }
+  );
 
-  console.log('Client connected');
-  sendUserCountNotification();
+  // Set up a callback for when a client closes the socket. This usually means they closed their browser.
+  ws.on('close', () => {console.log('Client disconnected'); sendUserCountNotification();});
+
+    console.log('Client connected');
+    sendUserCountNotification();
 
 });
